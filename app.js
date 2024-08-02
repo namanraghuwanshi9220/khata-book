@@ -14,5 +14,5 @@ app.use(express.urlencoded({extended: true }));
 
 app.get("/", indexRouter);
 
-app.listen(3000 , console.log("server run on 7000"));
+app.listen(3000 , console.log("server run on 000"));
  
