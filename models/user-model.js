@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema({
         required: true,
         select: false,
    },
-    hisaab: [{  type: mongoose.Schema.Types.ObjectId, ref: hisaab  }],
+    hisaab: [{  type: mongoose.Schema.Types.ObjectId, ref: "hisaab"  }],
 }) 
 
 module.exports = mongoose.model("user", userSchema);
