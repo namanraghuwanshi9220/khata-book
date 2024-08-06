@@ -32,7 +32,7 @@ const hisaabSchema = mongoose.Schema(
         },
 
         passcode: {
-            type: string,
+            type: String,
             default:"",
         },
 

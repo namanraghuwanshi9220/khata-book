@@ -1,10 +1,11 @@
 const jwt = require("jsonwebtoken")
 const userModel = require("../models/user-model");
 const bcrypt = require("bcrypt");
+const hissabMobel = require("../models/hissab-mobel");
 
 
 module.exports.landingPageController = function (req, res ){
-    res.render("index");
+    res.render("index", {loggedin: false});
 };
 
 module.exports.registerPageController = function (req, res ){
@@ -55,7 +56,7 @@ module.exports.loginController = async function (req, res ){
         );
 
         res.cookie("token",token);
-        res.send("your account login succesfuly")
+        res.redirect("/profile")
     }  
 
     else{
@@ -70,8 +71,8 @@ module.exports.logoutController  = async function (req, res ){
 
 };
 
-module.exports.profileController  = async function (req, res ){
-   
-   res.render("profile");
+module.exports.profileController  =  function (req, res , next){
+    
+   res.render("profile", {user: req.user});
 
 };

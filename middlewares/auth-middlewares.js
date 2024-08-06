@@ -1,11 +1,13 @@
 const jwt = require("jsonwebtoken");
+const userModel = require("../models/user-model");
 
-module.exports.isLoggedIn = function (req, res , next ){
+module.exports.isLoggedIn = async function (req, res , next ){
 
     if (req.cookies.token){
         try{
             let decoded = jwt.verify(req.cookies.token, process.env.JWT_KEY);
-            req.user = decoded;
+            let user = await userModel.findOne({email: decoded.email });
+            req.user = user;
             next();
         }
             
