@@ -14,6 +14,6 @@ const userSchema = mongoose.Schema({
         select: false,
    },
     hisaab: [{  type: mongoose.Schema.Types.ObjectId, ref: "hisaab"  }],
-}) 
+}); 
 
 module.exports = mongoose.model("user", userSchema);
