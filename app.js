@@ -17,6 +17,10 @@
 
 // app.use("/", indexRouter);
 
+// app.get("/profile", function(req,res){
+//     res.render(profile)
+// })
+
 
 // app.listen(3000 , console.log("server run on 000"));
  

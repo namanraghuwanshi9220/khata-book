@@ -5,8 +5,9 @@ const cookieParser = require ("cookie-parser");
 
 require("dotenv").config();
 
-const indexRouter = require ("./routes/index-router.js")
-const db = require ("../project/config/mongoose-connection")
+const indexRouter = require ("./routes/index-router.js");
+const hisaabRouter = require ("./routes/hisaab-router.js");
+const db = require ("../project/config/mongoose-connection");
 
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
@@ -17,9 +18,11 @@ app.use(cookieParser());
 
 app.use("/", indexRouter);
 
-app.get("/profile", function(req,res){
-    res.render(profile)
-})
+app.use("/hisaab", hisaabRouter);
+
+// app.get("/profile", function(req,res){
+//     res.render(profile)
+// })
 
 
 app.listen(3000 , console.log("server run on 000"));
