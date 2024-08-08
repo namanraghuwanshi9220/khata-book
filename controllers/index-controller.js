@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken")
 const userModel = require("../models/user-model");
 const bcrypt = require("bcrypt");
-const hissabMobel = require("../models/hissab-mobel");
+const hissabMobel = require("../models/hisaab-mobel");
+const { options } = require("../routes/index-router");
 
 
 module.exports.landingPageController = function (req, res ){
@@ -55,7 +56,9 @@ module.exports.loginController = async function (req, res ){
             process.env.JWT_KEY
         );
 
-        res.cookie("token",token);
+        const encryptedValue = encrypt('sensitiveData');
+        res.cookie('session', encryptedValue, { httpOnly: true, secure: true });
+        
         res.redirect("/profile")
     }  
 
@@ -71,8 +74,20 @@ module.exports.logoutController  = async function (req, res ){
 
 };
 
-module.exports.profileController  =  function (req, res , next){
+module.exports.profileController  = async function (req, res , next){
+  
+    let byDate = Number(req.query.byDate);
+    let {startDate, endDate } = req.query;
     
-   res.render("profile", {user: req.user});
+    byDate = byDate ? byDate : -1;
+    startDate = startDate ? startDate : new Date("1980-01-02");
+    endDate = endDate ? endDate : new Date();
+  
+    let user = await userModel.findOne({email: req.user.email}).populate({
+    path: "hisaab",
+    match: {createdAt: {$gte: startDate, $lte: endDate}},
+    options: { sort: { createdAt: byDate} },
+   });
+   res.render("profile", {user});
 
 };
