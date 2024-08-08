@@ -6,7 +6,7 @@ const cookieParser = require ("cookie-parser");
 require("dotenv").config();
 
 const indexRouter = require ("./routes/index-router.js");
-const hisaabRouter = require ("./routes/hisaab-router.js");
+const hisaabRouter = require ("./routes/hisaab-routers.js");
 const db = require ("../project/config/mongoose-connection");
 
 app.set("view engine", "ejs");
