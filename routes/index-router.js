@@ -7,6 +7,7 @@ const {
      loginController,
      logoutController,
      profileController,
+     hisaabController,
      
      } = require("../controllers/index-controller");
 
@@ -15,7 +16,8 @@ const {isLoggedIn,  redirectIfLoggedIn} = require("../middlewares/auth-middlewar
 router.get ("/", redirectIfLoggedIn, landingPageController);
 router.get ("/register", registerPageController);
 router.get ("/logout", logoutController);
-router.get ("/profile", isLoggedIn, profileController)
+router.get ("/profile", isLoggedIn, profileController);
+
 
 router.post ("/register", registerController);
 router.post ("/login", loginController);

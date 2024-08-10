@@ -35,3 +35,25 @@ res.redirect("/profile")
 module.exports.hisaabPageController = async function  (req, res ) {
     res.render("create");
 };
+
+module.exports.viewHisaabController = async function  (req, res ) {
+    
+    let byDate = Number(req.query.byDate);
+    let {startDate, endDate } = req.query;
+    
+    byDate = byDate ? byDate : -1;
+    startDate = startDate ? startDate : new Date("1980-01-02");
+    endDate = endDate ? endDate : new Date();
+  
+    let hisaab = await userModel.findOne({email: req.user.email}).populate({
+    path: "hisaab",
+    match: {createdAt: {$gte: startDate, $lte: endDate}},
+    options: { sort: { createdAt: byDate} },
+   });
+     
+    res.render("hisaab",  {hisaab});
+};
+
+module.exports.viewIdHisaabController = async function  (req, res ) {
+    res.render("hisaab");
+};
