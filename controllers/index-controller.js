@@ -5,6 +5,7 @@ const hissabMobel = require("../models/hisaab-mobel");
 const { options } = require("../routes/index-router");
 
 
+
 module.exports.landingPageController = function (req, res ){
     res.render("index", {loggedin: false});
 };
@@ -17,9 +18,15 @@ module.exports.registerPageController = function (req, res ){
 module.exports.registerController = async function (req, res ){
     let { email, username, password, name} = req.body;
 
+    if (!email || !password) {
+        // req.flash('error', 'Please fill in all required fields.');
+        return res.redirect('/register'); // Redirect to login page or display the flash message
+    }
+
     try{
         let user = await userModel.findOne({email});
     if (user) return res.render("you alrady have a account, please login");
+
 
     let salt = await  bcrypt.genSalt(10); 
     let hashed  = await bcrypt.hash(password, salt);
@@ -34,7 +41,7 @@ module.exports.registerController = async function (req, res ){
   let token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_KEY );
     
   res.cookie("token", token);
-  res.send("account is created ")
+  res.redirect("/")
 
 }
     catch(err){
@@ -45,6 +52,11 @@ module.exports.registerController = async function (req, res ){
 
 module.exports.loginController = async function (req, res ){
     let {email, password} = req.body;
+
+    if (!email || !password) {
+        // req.flash('error', 'Please fill in all required fields.');
+        return res.render('index'); // Redirect to login page or display the flash message
+    }
     
     let user = await userModel.findOne({email}).select("+password");
     if (!user) res.send("you dont have a account , please create one. ");
@@ -56,8 +68,8 @@ module.exports.loginController = async function (req, res ){
             process.env.JWT_KEY
         );
 
-        const encryptedValue = encrypt('sensitiveData');
-        res.cookie('session', encryptedValue, { httpOnly: true, secure: true });
+        
+        res.cookie("token", token);
         
         res.redirect("/profile")
     }  
