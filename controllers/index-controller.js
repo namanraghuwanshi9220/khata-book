@@ -11,7 +11,7 @@ module.exports.landingPageController = function (req, res ){
 };
 
 module.exports.registerPageController = function (req, res ){
-    res.render("register");
+    res.render("register", {loggedin: false});
 };
 
 
@@ -25,7 +25,10 @@ module.exports.registerController = async function (req, res ){
 
     try{
         let user = await userModel.findOne({email});
-    if (user) return res.render("you alrady have a account, please login");
+    if (user)  {
+        // req.flash('error', 'You don’t have an account, please create one.');
+        return res.render('index'); 
+    }
 
 
     let salt = await  bcrypt.genSalt(10); 
@@ -59,7 +62,7 @@ module.exports.loginController = async function (req, res ){
     }
     
     let user = await userModel.findOne({email}).select("+password");
-    if (!user) res.send("you dont have a account , please create one. ");
+    if (!user) return res.render('index');
 
     let result =  await bcrypt.compare(password, user.password);
     if (result) {
@@ -102,4 +105,12 @@ module.exports.profileController  = async function (req, res , next){
    });
    res.render("profile", {user});
 
+};
+
+module.exports.passcodeController = async function (req, res ){
+ 
+    let id = req.params.id;
+    let hisaab = await userModel.findOne({email: req.user.email});
+    // let hisaab = await hisaabModel.findById(id);
+    res.render("passcode", {hisaab, id});
 };
