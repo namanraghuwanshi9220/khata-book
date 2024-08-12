@@ -7,7 +7,7 @@ const {
      loginController,
      logoutController,
      profileController,
-     hisaabController,
+     passcodeController,
      
      } = require("../controllers/index-controller");
 
@@ -17,7 +17,7 @@ router.get ("/", redirectIfLoggedIn, landingPageController);
 router.get ("/register", registerPageController);
 router.get ("/logout", logoutController);
 router.get ("/profile", isLoggedIn, profileController);
-
+router.post ("/passcode", isLoggedIn, passcodeController);
 
 router.post ("/register", registerController);
 router.post ("/login", loginController);

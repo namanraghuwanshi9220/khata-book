@@ -37,23 +37,88 @@ module.exports.hisaabPageController = async function  (req, res ) {
 };
 
 module.exports.viewHisaabController = async function  (req, res ) {
-    
-    let byDate = Number(req.query.byDate);
-    let {startDate, endDate } = req.query;
-    
-    byDate = byDate ? byDate : -1;
-    startDate = startDate ? startDate : new Date("1980-01-02");
-    endDate = endDate ? endDate : new Date();
-  
-    let hisaab = await userModel.findOne({email: req.user.email}).populate({
-    path: "hisaab",
-    match: {createdAt: {$gte: startDate, $lte: endDate}},
-    options: { sort: { createdAt: byDate} },
-   });
-     
+    let id = req.params.id;
+    let hisaab = await hisaabModel.findOne({_id: id});
+
+    if(!hisaab) {
+        return res.redirect("/profile");
+    }
+
+    if (hisaab.encrypted){
+        return res.render("passcode",  {id});
+    }
+ 
     res.render("hisaab",  {hisaab});
 };
 
 module.exports.viewIdHisaabController = async function  (req, res ) {
     res.render("hisaab");
+};
+
+module.exports.deleteHisaabController = async function  (req, res ) {
+   
+    let id = req.params.id;
+    let hisaab = await hisaabModel.findOne({
+        _id: id,
+        user: req.user.id
+    });
+
+    if(!hisaab) {
+        return res.redirect("/profile");
+    }
+
+    await hisaabModel.deleteOne({
+        _id: id
+    });
+   
+    return res.redirect("/profile");
+};
+
+module.exports.editHisaabController = async function (req, res) {
+    
+    let id = req.params.id;
+    let hisaab = await hisaabModel.findById(id);
+
+    if (!hisaab) {
+        return res.redirect("/profile");
+    }
+
+    return res.render("edit", {hisaab} );
+};
+
+module.exports.editHisaabPostController = async function (req, res) {
+    
+    let id = req.params.id;
+    let hisaab = await hisaabModel.findById(id);
+
+    if (!hisaab) {
+        return res.redirect("/profile");
+    }
+
+   hisaab.title = req.body.title;
+   hisaab.description = req.body.description;
+   hisaab.editpermissions = req.body.editpermissions == "on" ? true : false;
+   hisaab.encrypted = req.body.encrypted == "on" ? true : false;
+   hisaab.passcode = req.body.passcode;
+   hisaab.shareable =req.body.shareable  == "on" ? true : false;
+
+   await hisaab.save();
+
+   res.redirect("/profile");
+
+};
+
+module.exports.verifyController = async function (req, res) {
+
+    let id = req.params.id;
+    let hisaab = await hisaabModel.findOne({_id: id});
+
+    if (!hisaab) {
+        return res.redirect("/profile");
+    }
+
+    if (hisaab.passcode !== req.body.passcode){
+        return res.redirect("/profile");
+    }
+  return  res.render("hisaab",{hisaab});
 };
