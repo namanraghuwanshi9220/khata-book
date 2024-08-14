@@ -32,6 +32,5 @@ app.use("/hisaab", hisaabRouter);
 //     res.render(profile)
 // })
 
-
 app.listen(3000 , console.log("server run on 000"));
  

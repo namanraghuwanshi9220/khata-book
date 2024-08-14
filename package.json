@@ -11,6 +11,8 @@
   "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.6",
     "crypto": "^1.0.1",
@@ -21,6 +23,8 @@
     "flash": "^1.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.2",
-    "salt": "^0.5.5"
+    "nodemailer": "^6.9.14",
+    "salt": "^0.5.5",
+    "sib-api-v3-sdk": "^8.5.0"
   }
 }
