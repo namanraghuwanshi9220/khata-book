@@ -1,9 +1,20 @@
 const jwt = require("jsonwebtoken")
 const userModel = require("../models/user-model");
 const bcrypt = require("bcrypt");
+const nodemailer = require('nodemailer');
 const hissabMobel = require("../models/hisaab-mobel");
 const { options } = require("../routes/index-router");
 
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    secure: true,
+    port: 465,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 
 
 module.exports.landingPageController = function (req, res ){
@@ -23,35 +34,102 @@ module.exports.registerController = async function (req, res ){
         return res.redirect('/register'); // Redirect to login page or display the flash message
     }
 
-    try{
+
+    
+    try {
+
         let user = await userModel.findOne({email});
-    if (user)  {
-        // req.flash('error', 'You don’t have an account, please create one.');
-        return res.render('index'); 
+            if (user)  {
+                // req.flash('error', 'You don’t have an account, please create one.');
+                return res.send('bsdk account hai login kar'); 
+            }
+
+            
+        const hashedPassword = await bcrypt.hash(password, 10);
+           user = new userModel({ email, username , name , password: hashedPassword });
+        await user.save();
+
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY, { expiresIn: '1h' });
+        const verificationLink = `http://localhost:${process.env.PORT}/verification/${token}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_FROM,
+            to: user.email,
+            subject: 'Email Verification',
+            text: `Click the following link to verify your email: ${verificationLink}`,
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        // req.flash('success_msg', 'Signup successful! Please check your email for a verification link.');
+        res.redirect('/signup-success');
+    } catch (error) {
+        console.error('Signup error:', error);
+        // req.flash('error_msg', 'Error registering user.');
+        res.redirect('/signup-success');
     }
-
-
-    let salt = await  bcrypt.genSalt(10); 
-    let hashed  = await bcrypt.hash(password, salt);
-    
-    user = await userModel.create({
-        email,
-        name,
-        username,
-        password:hashed,
-    });
-
-  let token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_KEY );
-    
-  res.cookie("token", token);
-  res.redirect("/")
-
-}
-    catch(err){
-         res.send(err.message);
-    }
-
 };
+
+
+
+
+//     try{
+//         let user = await userModel.findOne({email});
+//     if (user)  {
+//         // req.flash('error', 'You don’t have an account, please create one.');
+//         return res.render('index'); 
+//     }
+
+
+//     let salt = await  bcrypt.genSalt(10); 
+//     let hashed  = await bcrypt.hash(password, salt);
+    
+//     user = await userModel.create({
+//         email,
+//         name,
+//         username,
+//         password:hashed,
+//     });
+
+//   let token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_KEY );
+    
+//   res.cookie("token", token);
+//   res.redirect("/")
+
+// }
+//     catch(err){
+//          res.send(err.message);
+//     }
+
+// };
+
+module.exports.verificationController = async function (req, res ){
+    const { token } = req.params;
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_KEY);
+        const user = await userModel.findById(decoded.userId);
+
+        if (!user) {
+            req.flash('error_msg', 'Invalid token or user not found.');
+            return res.redirect('/signup-success');
+        }
+
+        user.isVerified = true;
+        await user.save();
+
+        // req.flash('success_msg', 'Email verified successfully!');
+        res.redirect('/');
+    } catch (error) {
+        console.error('Verification error:', error);
+        // req.flash('error_msg', 'Invalid or expired token.');
+        res.redirect('/signup-success');
+    }
+}
+
+module.exports.signupSuccessController = async function (req, res){
+   res.render("signup-success") 
+}
 
 module.exports.loginController = async function (req, res ){
     let {email, password} = req.body;
@@ -62,7 +140,16 @@ module.exports.loginController = async function (req, res ){
     }
     
     let user = await userModel.findOne({email}).select("+password");
-    if (!user) return res.render('index');
+    if (!user) {
+        // req.flash('error_msg', 'User not found.');
+        return res.redirect('/');
+    }
+
+    if (!user.isVerified) {
+        // req.flash('error_msg', 'Email not verified.');
+        return res.redirect('/');
+    }
+
 
     let result =  await bcrypt.compare(password, user.password);
     if (result) {
@@ -72,14 +159,12 @@ module.exports.loginController = async function (req, res ){
         );
 
         
-        res.cookie("token", token);
+        res.cookie("token", token );
         
         res.redirect("/profile")
     }  
 
-    else{
-      return    res.send("your details are incorrect.");
-    }
+
 };
  
 module.exports.logoutController  = async function (req, res ){

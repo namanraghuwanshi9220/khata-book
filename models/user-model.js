@@ -6,6 +6,7 @@ const userSchema = mongoose.Schema({
     email:{
          type: String,
          required: true,
+         unique: true,
     },
     profilepicture: String,
     password:{
@@ -13,6 +14,12 @@ const userSchema = mongoose.Schema({
         required: true,
         select: false,
    },
+
+   isVerified: { 
+    type: Boolean,
+     default: false
+     },
+     
     hisaab: [{  type: mongoose.Schema.Types.ObjectId, ref: "hisaab"  }],
 }); 
 
