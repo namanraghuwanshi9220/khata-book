@@ -21,6 +21,7 @@ router.get ("/profile", isLoggedIn, profileController);
 router.get ("/verification/:token", verificationController);
 router.get ("/signup-success", signupSuccessController);
 
+
 router.post ("/passcode", isLoggedIn, passcodeController);
 router.post ("/register", registerController);
 router.post ("/login", loginController);

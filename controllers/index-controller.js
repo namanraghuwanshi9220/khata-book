@@ -1,20 +1,11 @@
 const jwt = require("jsonwebtoken")
 const userModel = require("../models/user-model");
 const bcrypt = require("bcrypt");
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
+const transporter = require("../utils/nodemailer");
 const hissabMobel = require("../models/hisaab-mobel");
 const { options } = require("../routes/index-router");
 
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    secure: true,
-    port: 465,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
 
 
 module.exports.landingPageController = function (req, res ){
@@ -132,38 +123,53 @@ module.exports.signupSuccessController = async function (req, res){
 }
 
 module.exports.loginController = async function (req, res ){
-    let {email, password} = req.body;
+    // let {email, password} = req.body;
 
-    if (!email || !password) {
-        // req.flash('error', 'Please fill in all required fields.');
-        return res.render('index'); // Redirect to login page or display the flash message
-    }
-    
-    let user = await userModel.findOne({email}).select("+password");
-    if (!user) {
-        // req.flash('error_msg', 'User not found.');
+    try {
+        let { email, password } = req.body;
+
+        if (!email || !password) {
+            // req.flash('error', 'Please fill in all required fields.');
+            return res.render('index'); // Render the login page with an error message
+        }
+
+        let user = await userModel.findOne({ email }).select("+password");
+        if (!user) {
+            // req.flash('error_msg', 'User not found.');
+            return res.redirect('/');
+        }
+
+        if (!user.isVerified) {
+            // req.flash('error_msg', 'Email not verified.');
+            return res.redirect('/');
+        }
+
+        let result = await bcrypt.compare(password, user.password);
+        // console.log('Password comparison result:', result); // Debugging line
+
+        if (result) {
+            let token = jwt.sign(
+                { id: user._id, email: user.email },
+                process.env.JWT_KEY
+            );
+
+            res.cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 24 * 60 * 60 * 1000, // 1 day expiration
+            });
+
+            return res.redirect("/profile");
+        } else {
+            // console.log('Incorrect password'); // Debugging line
+            // req.flash('error_msg', 'Incorrect password.');
+            return res.redirect('/');
+        }
+    } catch (err) {
+        // console.error('Login Error:', err);
+        // req.flash('error_msg', 'An error occurred during login. Please try again.');
         return res.redirect('/');
     }
-
-    if (!user.isVerified) {
-        // req.flash('error_msg', 'Email not verified.');
-        return res.redirect('/');
-    }
-
-
-    let result =  await bcrypt.compare(password, user.password);
-    if (result) {
-        let token = jwt.sign(
-            {  id: user._id, email: user.email },
-            process.env.JWT_KEY
-        );
-
-        
-        res.cookie("token", token );
-        
-        res.redirect("/profile")
-    }  
-
 
 };
  
